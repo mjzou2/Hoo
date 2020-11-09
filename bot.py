@@ -50,6 +50,16 @@ async def on_message(message):
 
     await asyncio.sleep(0.5)
 
+    result = random.choice(range(1, 100))
+    if (result == 1):
+        user_id = str(message.author.id);
+        if user_id in amounts:
+            guild = message.guild
+            channel = guild.get_channel(610953821413179441)
+            await channel.send(message.author.display_name + ", you earned $100 for sending a message in \#" + message.channel.name + "!")
+            amounts[user_id] += 100
+            _save()
+
     if message.content == "WHO" or message.content == "WHO?":
         await message.channel.send("CARES? NO ONE")
     elif message.content.lower() == "who?" or message.content.lower() == "who":
@@ -125,13 +135,20 @@ async def roles(ctx):
     await ctx.send(embed=embed)
 
 @bot.command(name="roll", help="Rolls a six-sided die")
-async def roll(ctx, amount: int, outcome: str):
+async def roll(ctx, amount: int=0, outcome: str=None):
     user_id = str(ctx.message.author.id)
-    if user_id not in amounts:
+    if amount < 0:
+        await ctx.send("Please bet a positive amount.")
+        return
+    elif user_id not in amounts:
         await ctx.send("You do not have an account.")
         return
     elif amounts[user_id] < amount:
         await ctx.send("You cannot afford this bet.")
+        return
+    if (outcome == None):
+        result = random.choice([1, 2, 3, 4, 5, 6])
+        await ctx.send("The die rolled a " + str(result) + ".")
         return
     if (outcome.lower() == "one" or outcome == "1"):
         choice = 1
@@ -158,13 +175,20 @@ async def roll(ctx, amount: int, outcome: str):
     _save()
 
 @bot.command(name="flip", help="Flips a coin")
-async def flip(ctx, amount: int, outcome: str):
+async def flip(ctx, amount: int=0, outcome: str=None):
     user_id = str(ctx.message.author.id)
-    if user_id not in amounts:
+    if amount < 0:
+        await ctx.send("Please bet a positive amount.")
+        return
+    elif user_id not in amounts:
         await ctx.send("You do not have an account.")
         return
     elif amounts[user_id] < amount:
         await ctx.send("You cannot afford this bet.")
+        return
+    if (outcome == None):
+        result = random.choice(["Heads", "Tails"])
+        await ctx.send("The coin came up " + result + ".")
         return
     if (outcome.lower() == "heads" or outcome.lower() == "h" or outcome.lower() == "head"):
         choice = "Heads"
@@ -173,11 +197,7 @@ async def flip(ctx, amount: int, outcome: str):
     else:
         await ctx.send("Outcome not recognized. Please try again.")
         return
-    result = random.choice([1, 2])
-    if (result == 1):
-        out = "Heads"
-    elif (result == 2):
-        out = "Tails"
+    out = random.choice(["Heads", "Tails"])
     if (choice == out):
         await ctx.send("The coin came up " + out + ". You won $" + str(amount) + "!")
         amounts[user_id] += amount
